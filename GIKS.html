@@ -3,136 +3,165 @@
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800;900&family=DM+Mono:wght@400;500&family=Instrument+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800;900&family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
-/* Layout: scoreboard-style HUD. One hero with an "achievement unlocked" toast, then two achievement panels with milestone ladders. */
+/* Layout: floating glass nav, centered hero with glass lettering, four glass achievement cards, channel links, quiet footer. Black ground, red light. */
 :root {
-  --bg: #000000;
-  --surface: #0e0505;
-  --surface-2: #1c0a0a;
-  --line: #4a1818;
-  --fg: #ff6a5c;
-  --muted: #c2564d;
-  --gold: #ff2e3e;
-  --gold-ink: #000000;
-  --live: #ff9a3c;
+  --bg: #050304;
+  --ink: #ffd9d4;
+  --ink-soft: #d9877f;
+  --ink-faint: #8f5a55;
+  --red: #ff2e3e;
+  --red-deep: #b0001a;
+  --ember: #ff8a4c;
+  --hair: rgba(255, 190, 180, .16);
+  --glass: linear-gradient(150deg, rgba(255, 255, 255, .13), rgba(255, 255, 255, .03) 46%, rgba(255, 60, 70, .09));
   --font-display: "Big Shoulders Display", "Arial Narrow", Impact, sans-serif;
-  --font-body: "Instrument Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-body: "Manrope", system-ui, -apple-system, "Segoe UI", sans-serif;
   --font-mono: "DM Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
   color-scheme: dark;
 }
-/* Single dark look by design: no light variant. */
 
 * { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
 body {
-  background:
-    radial-gradient(520px 380px at 10% 30%, rgba(255, 46, 62, .38), transparent 70%),
-    radial-gradient(560px 420px at 90% 60%, rgba(255, 120, 60, .28), transparent 70%),
-    radial-gradient(480px 360px at 40% 96%, rgba(255, 46, 62, .24), transparent 70%),
-    var(--bg);
-  color: var(--fg);
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
   font-family: var(--font-body);
   font-size: 16px;
-  line-height: 1.55;
-  padding-block: 20px 40px;
+  line-height: 1.6;
+  padding-block: 0 32px;
   padding-left: max(16px, env(safe-area-inset-left, 0px));
   padding-right: max(16px, env(safe-area-inset-right, 0px));
+  -webkit-font-smoothing: antialiased;
 }
-.wrap { max-width: 1080px; margin-inline: auto; display: flex; flex-direction: column; gap: 56px; text-align: center; }
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 30; background: var(--bg); }
 a { color: inherit; }
-:focus-visible { outline: 3px solid var(--gold); outline-offset: 3px; border-radius: 4px; }
+:focus-visible { outline: 2px solid var(--ember); outline-offset: 3px; border-radius: 8px; }
 
-.mono { font-family: var(--font-mono); font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); }
+/* ambient light behind the glass */
+.light { position: fixed; inset: 0; z-index: -1; overflow: hidden; pointer-events: none; }
+.orb { position: absolute; border-radius: 50%; filter: blur(2px); animation: drift 18s ease-in-out infinite alternate; }
+.orb.a { width: 340px; height: 340px; left: -4%; top: 14%; background: radial-gradient(circle at 32% 30%, #ff6a52, var(--red-deep) 72%); opacity: .85; }
+.orb.b { width: 260px; height: 260px; right: -2%; top: 46%; background: radial-gradient(circle at 32% 30%, #ffae6a, #e0301e 72%); opacity: .8; animation-delay: -6s; }
+.orb.c { width: 300px; height: 300px; left: 38%; bottom: -8%; background: radial-gradient(circle at 32% 30%, #ff5a5a, var(--red-deep) 72%); opacity: .7; animation-delay: -11s; }
+.grain { position: absolute; inset: 0; opacity: .08; mix-blend-mode: overlay; background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>"); }
+@keyframes drift { from { transform: translate3d(0, 0, 0) scale(1); } to { transform: translate3d(36px, -28px, 0) scale(1.08); } }
 
-/* top bar */
-.bar { display: flex; justify-content: center; align-items: center; gap: 12px 20px; flex-wrap: wrap; }
-.brand { font-family: var(--font-display); font-weight: 800; font-size: 22px; letter-spacing: .06em; text-transform: uppercase; }
-.pill { display: inline-flex; align-items: center; gap: 8px; border: 1px solid var(--line); border-radius: 999px; padding: 6px 14px; background: var(--surface); }
-.dot { width: 8px; height: 8px; border-radius: 50%; background: var(--live); }
+.wrap { max-width: 1100px; margin-inline: auto; text-align: center; display: flex; flex-direction: column; }
+.mono { font-family: var(--font-mono); font-size: 11px; letter-spacing: .22em; text-transform: uppercase; color: var(--ink-soft); }
+
+/* nav */
+.nav-wrap { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 20; display: flex; justify-content: center; padding-block: 14px; }
+.nav {
+  display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 6px 18px;
+  padding: 8px 10px 8px 22px; border-radius: 999px; max-width: 100%;
+  background: var(--glass); border: 1px solid var(--hair);
+  -webkit-backdrop-filter: blur(20px) saturate(160%); backdrop-filter: blur(20px) saturate(160%);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .25), 0 10px 30px rgba(0, 0, 0, .5);
+}
+.brand { font-family: var(--font-display); font-weight: 900; font-size: 24px; letter-spacing: .12em; text-decoration: none; color: var(--ink); }
+.nav-links { display: flex; gap: 4px; }
+.nav-links a { text-decoration: none; font-size: 13px; font-weight: 600; color: var(--ink-soft); padding: 8px 12px; border-radius: 999px; transition: color .2s ease, background .2s ease; }
+.nav-links a:hover { color: var(--ink); background: rgba(255, 255, 255, .08); }
+.nav-cta { text-decoration: none; font-size: 13px; font-weight: 700; color: #fff; padding: 10px 18px; border-radius: 999px; background: linear-gradient(180deg, #ff4a58, var(--red-deep)); box-shadow: inset 0 1px 0 rgba(255, 255, 255, .4), 0 6px 18px rgba(255, 46, 62, .35); }
 
 /* hero */
-.hero { display: grid; gap: 28px; justify-items: center; }
+.hero { padding-block: clamp(48px, 9vw, 110px) clamp(56px, 8vw, 96px); display: flex; flex-direction: column; align-items: center; gap: 26px; }
+.eyebrow { display: inline-flex; align-items: center; gap: 10px; padding: 7px 16px; border-radius: 999px; border: 1px solid var(--hair); background: rgba(255, 255, 255, .04); }
+.eyebrow i { width: 7px; height: 7px; border-radius: 50%; background: var(--ember); box-shadow: 0 0 10px var(--ember); }
 h1 {
-  font-family: var(--font-display); font-weight: 900; text-transform: uppercase;
-  font-size: clamp(76px, 20vw, 190px); line-height: .84; letter-spacing: -.01em; margin: 0;
-  text-wrap: balance;
+  font-family: var(--font-display); font-weight: 900; text-transform: uppercase; margin: 0;
+  font-size: clamp(110px, 30vw, 300px); line-height: .8; letter-spacing: .02em;
+  background: linear-gradient(180deg, rgba(255, 255, 255, .92) 0%, rgba(255, 160, 150, .52) 50%, rgba(255, 60, 70, .3) 100%);
+  -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; color: transparent;
+  -webkit-text-stroke: 2px rgba(255, 255, 255, .55);
+  filter: drop-shadow(0 12px 40px rgba(255, 46, 62, .5));
+  padding-inline: .05em;
 }
-h1 span { color: var(--gold); }
-.lede { max-width: 52ch; font-size: 18px; color: var(--muted); margin: 0 auto; }
+.lede { max-width: 50ch; margin: 0; font-size: clamp(16px, 2.2vw, 19px); color: var(--ink-soft); }
+.goal { display: inline-flex; align-items: center; gap: 12px; padding: 10px 18px; border-radius: 14px; background: var(--glass); border: 1px solid var(--hair); -webkit-backdrop-filter: blur(16px); backdrop-filter: blur(16px); }
+.goal b { font-family: var(--font-display); font-size: 22px; letter-spacing: .04em; text-transform: uppercase; color: var(--ink); }
 .cta { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; }
-.btn {
-  display: inline-flex; align-items: center; gap: 10px; text-decoration: none; font-weight: 600;
-  padding: 14px 22px; border-radius: 10px; border: 2px solid var(--gold); min-height: 48px;
-  transition: transform .15s ease, background .15s ease;
-}
-.btn svg { width: 20px; height: 20px; flex: none; }
-.btn-primary { background: var(--gold); color: var(--gold-ink); }
-.btn-ghost { color: var(--fg); border-color: var(--line); background: var(--surface); }
-.btn:hover { transform: translateY(-2px); }
+.btn { display: inline-flex; align-items: center; gap: 10px; text-decoration: none; font-weight: 700; font-size: 15px; padding: 15px 26px; min-height: 52px; border-radius: 999px; transition: transform .2s ease, box-shadow .2s ease; }
+.btn svg { width: 18px; height: 18px; flex: none; }
+.btn-primary { color: #fff; background: linear-gradient(180deg, #ff4a58, var(--red-deep)); box-shadow: inset 0 1px 0 rgba(255, 255, 255, .4), 0 10px 30px rgba(255, 46, 62, .4); }
+.btn-ghost { color: var(--ink); background: var(--glass); border: 1px solid var(--hair); -webkit-backdrop-filter: blur(16px); backdrop-filter: blur(16px); box-shadow: inset 0 1px 0 rgba(255, 255, 255, .2); }
+.btn:hover { transform: translateY(-3px); }
 
-/* achievement toast */
-.toast {
-  display: flex; align-items: center; gap: 16px; width: fit-content; max-width: 100%;
-  background: var(--surface-2); border: 1px solid var(--gold); border-radius: 14px; padding: 14px 20px 14px 14px;
-  animation: slide .6s cubic-bezier(.2,.9,.3,1) both;
-}
-.toast .badge { width: 52px; height: 52px; }
-.toast strong { display: block; font-family: var(--font-display); font-size: 26px; line-height: 1.05; text-transform: uppercase; letter-spacing: .02em; }
-@keyframes slide { from { transform: translateX(-24px); opacity: .01; } to { transform: none; opacity: 1; } }
+/* sections */
+section { padding-block: clamp(40px, 6vw, 72px); scroll-margin-top: 84px; }
+.sec-head { display: flex; flex-direction: column; align-items: center; gap: 10px; margin-bottom: 36px; }
+h2 { font-family: var(--font-display); font-weight: 800; text-transform: uppercase; letter-spacing: .04em; font-size: clamp(40px, 7vw, 64px); line-height: 1; margin: 0; text-wrap: balance; }
+.rule { width: 56px; height: 2px; border-radius: 2px; background: linear-gradient(90deg, transparent, var(--red), transparent); }
 
-.badge {
-  flex: none; display: grid; place-items: center; border-radius: 14px;
-  background: var(--gold); color: var(--gold-ink);
+/* glass surfaces */
+.glass {
+  position: relative; min-width: 0; overflow: hidden;
+  background: var(--glass); border: 1px solid rgba(255, 255, 255, .22); border-radius: 22px;
+  -webkit-backdrop-filter: blur(24px) saturate(170%); backdrop-filter: blur(24px) saturate(170%);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .4), inset 0 -1px 0 rgba(255, 255, 255, .06), 0 20px 50px rgba(0, 0, 0, .6);
+  transition: transform .3s ease, border-color .3s ease;
 }
-.badge svg { width: 58%; height: 58%; }
+.glass::after { content: ""; position: absolute; inset: 0; pointer-events: none; background: radial-gradient(260px circle at var(--mx, 50%) var(--my, -30%), rgba(255, 255, 255, .16), transparent 70%); opacity: 0; transition: opacity .3s ease; }
+.glass:hover { transform: translateY(-4px); border-color: rgba(255, 255, 255, .4); }
+.glass:hover::after { opacity: 1; }
 
-/* achievements */
-.sec-head { display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 8px; margin-bottom: 24px; }
-h2 { font-family: var(--font-display); font-weight: 800; text-transform: uppercase; font-size: clamp(36px, 7vw, 56px); line-height: 1; margin: 0; }
-.grid { display: grid; gap: 14px; grid-template-columns: repeat(auto-fit, minmax(min(100%, 230px), 1fr)); }
-.card { background: linear-gradient(145deg, rgba(255, 90, 80, .16), rgba(255, 60, 60, .04)); border: 1px solid rgba(255, 120, 110, .3); -webkit-backdrop-filter: blur(18px) saturate(150%); backdrop-filter: blur(18px) saturate(150%); box-shadow: inset 0 1px 0 rgba(255, 255, 255, .14), 0 10px 32px rgba(0, 0, 0, .55); border-radius: 14px; padding: 16px; display: flex; flex-direction: column; gap: 12px; min-width: 0; }
-.card-top { display: flex; gap: 10px; align-items: center; justify-content: center; }
-.card-top .badge { width: 40px; height: 40px; border-radius: 10px; }
-.card h3 { font-family: var(--font-display); font-weight: 800; font-size: 21px; text-transform: uppercase; line-height: 1; margin: 0; }
-.card p { margin: 0; color: var(--muted); }
-.count { font-family: var(--font-display); font-weight: 900; font-size: clamp(44px, 9vw, 56px); line-height: .9; font-variant-numeric: tabular-nums; }
-.count small { display: block; font-family: var(--font-mono); font-weight: 400; font-size: 11px; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); margin-top: 6px; }
-.progress { display: flex; flex-direction: column; gap: 6px; }
-.progress-row { display: flex; justify-content: center; gap: 4px 12px; flex-wrap: wrap; }
-.track { height: 8px; border-radius: 999px; background: var(--surface-2); border: 1px solid var(--line); overflow: hidden; }
-.fill { height: 100%; width: 0; background: var(--gold); border-radius: 999px; transition: width 1.1s cubic-bezier(.2,.8,.2,1); }
+.grid { display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(min(100%, 235px), 1fr)); }
+.card { padding: 26px 20px 22px; display: flex; flex-direction: column; align-items: center; gap: 16px; }
+.badge { width: 48px; height: 48px; display: grid; place-items: center; border-radius: 14px; color: #fff; background: linear-gradient(160deg, #ff5a68, var(--red-deep)); box-shadow: inset 0 1px 0 rgba(255, 255, 255, .45), 0 8px 20px rgba(255, 46, 62, .35); }
+.badge svg { width: 56%; height: 56%; }
+.card h3 { margin: 0; font-family: var(--font-mono); font-weight: 500; font-size: 12px; letter-spacing: .2em; text-transform: uppercase; color: var(--ink-soft); }
+.count { font-family: var(--font-display); font-weight: 900; font-size: clamp(64px, 12vw, 84px); line-height: .85; color: var(--ink); font-variant-numeric: tabular-nums; }
+.count small { display: block; margin-top: 8px; font-family: var(--font-mono); font-weight: 400; font-size: 11px; letter-spacing: .2em; text-transform: uppercase; color: var(--ink-faint); }
+.progress { width: 100%; display: flex; flex-direction: column; gap: 8px; }
+.progress-row { display: flex; justify-content: center; gap: 4px 14px; flex-wrap: wrap; }
+.track { height: 6px; border-radius: 999px; background: rgba(255, 255, 255, .08); overflow: hidden; }
+.fill { height: 100%; width: 0; border-radius: 999px; background: linear-gradient(90deg, var(--red), var(--ember)); box-shadow: 0 0 12px rgba(255, 90, 60, .7); transition: width 1.2s cubic-bezier(.2, .8, .2, 1); }
 .ladder { display: flex; flex-wrap: wrap; justify-content: center; gap: 5px; margin: 0; padding: 0; list-style: none; }
-.step { font-family: var(--font-mono); font-size: 11px; padding: 3px 8px; border-radius: 6px; border: 1px solid var(--line); color: var(--muted); display: inline-flex; gap: 6px; align-items: center; }
-.step.done { background: var(--gold); border-color: var(--gold); color: var(--gold-ink); font-weight: 500; }
-.step.next { border-style: dashed; color: var(--fg); }
+.step { font-family: var(--font-mono); font-size: 11px; padding: 3px 9px; border-radius: 999px; border: 1px solid var(--hair); color: var(--ink-faint); }
+.step.done { background: linear-gradient(180deg, #ff4a58, var(--red-deep)); border-color: transparent; color: #fff; }
+.step.next { border-style: dashed; border-color: var(--ember); color: var(--ink); }
 
-/* support strip */
-.strip { display: grid; gap: 14px; grid-template-columns: repeat(auto-fit, minmax(min(100%, 230px), 1fr)); }
-.strip a { display: flex; flex-direction: column; align-items: center; gap: 6px; text-decoration: none; background: linear-gradient(145deg, rgba(255, 90, 80, .16), rgba(255, 60, 60, .04)); border: 1px solid rgba(255, 120, 110, .3); -webkit-backdrop-filter: blur(18px) saturate(150%); backdrop-filter: blur(18px) saturate(150%); box-shadow: inset 0 1px 0 rgba(255, 255, 255, .14), 0 10px 32px rgba(0, 0, 0, .55); border-radius: 14px; padding: 20px; transition: border-color .15s ease; }
-.strip a:hover { border-color: var(--gold); }
-.strip b { font-family: var(--font-display); font-size: 26px; text-transform: uppercase; letter-spacing: .02em; }
-.strip span { color: var(--muted); }
+/* channels */
+.strip { display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(min(100%, 235px), 1fr)); }
+.link { padding: 24px 20px; display: flex; flex-direction: column; align-items: center; gap: 8px; text-decoration: none; }
+.link b { font-family: var(--font-display); font-size: 28px; letter-spacing: .05em; text-transform: uppercase; line-height: 1; }
+.link span { color: var(--ink-soft); font-size: 14px; }
+.link .go { font-family: var(--font-mono); font-size: 11px; letter-spacing: .2em; text-transform: uppercase; color: var(--ember); margin-top: 4px; }
 
-footer { display: flex; justify-content: center; gap: 8px 20px; flex-wrap: wrap; border-top: 1px solid var(--line); padding-top: 20px; }
+footer { margin-top: 24px; padding-top: 24px; border-top: 1px solid var(--hair); display: flex; justify-content: center; flex-wrap: wrap; gap: 8px 24px; }
 
 @media (prefers-reduced-motion: reduce) {
-  .toast { animation: none; }
-  .fill { transition: none; }
-  .btn { transition: none; }
+  .orb { animation: none; }
+  .fill, .btn, .glass, .glass::after, .nav-links a { transition: none; }
+  html { scroll-behavior: auto; }
 }
 </style>
 
-<div class="wrap">
-  <header class="bar">
-    <div class="brand">GIKS</div>
-    <div class="pill mono"><span class="dot"></span>Streamer profile</div>
-  </header>
+<div class="light" aria-hidden="true">
+  <div class="orb a"></div><div class="orb b"></div><div class="orb c"></div>
+  <div class="grain"></div>
+</div>
 
-  <section class="hero">
-    <p class="mono" style="margin:0">Live streamer &middot; Community builder</p>
-    <h1>GIKS<span>.</span></h1>
-    <p class="lede" id="lede">Streams, clips and a community that keeps growing. Every milestone below was earned one subscriber and one follower at a time.</p>
-    <div class="toast" id="toast" role="status"></div>
+<div class="wrap">
+  <div class="nav-wrap">
+    <nav class="nav" aria-label="Main">
+      <a class="brand" href="#top">GIKS</a>
+      <div class="nav-links">
+        <a href="#achievements">Achievements</a>
+        <a href="#join">Channels</a>
+      </div>
+      <a class="nav-cta" id="navSub" href="#achievements">Subscribe</a>
+    </nav>
+  </div>
+
+  <header class="hero" id="top">
+    <span class="eyebrow mono"><i></i>Live streamer</span>
+    <h1>GIKS</h1>
+    <p class="lede">Live streams, sharp clips and a community that grows with every milestone. Follow along, subscribe, and be part of the count.</p>
+    <div class="goal" id="goal"></div>
     <div class="cta">
       <a class="btn btn-primary" id="subBtn" href="#achievements">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1L3.2 9.5l6.1-.9z"/></svg>
@@ -143,41 +172,44 @@ footer { display: flex; justify-content: center; gap: 8px 20px; flex-wrap: wrap;
         Follow on Instagram
       </a>
     </div>
-  </section>
+  </header>
 
   <section id="achievements" aria-labelledby="ach-h">
     <div class="sec-head">
+      <span class="mono">Milestones</span>
       <h2 id="ach-h">Achievements</h2>
-      <span class="mono">Milestones unlocked so far</span>
+      <div class="rule"></div>
     </div>
     <div class="grid" id="grid"></div>
   </section>
 
-  <section aria-labelledby="join-h">
+  <section id="join" aria-labelledby="join-h">
     <div class="sec-head">
+      <span class="mono">Find GIKS</span>
       <h2 id="join-h">Join the crew</h2>
+      <div class="rule"></div>
     </div>
     <div class="strip">
-      <a id="subLink" href="#achievements"><b>Become a subscriber</b><span>Support the stream and get your name on the next milestone.</span></a>
-      <a id="igLink" href="https://www.instagram.com/" target="_blank" rel="noopener"><b>Follow on Instagram</b><span>Behind-the-scenes posts, stream announcements and clips.</span></a>
-      <a id="twitchLink" href="https://www.twitch.tv/" target="_blank" rel="noopener"><b>Follow on Twitch</b><span>Get notified every time the stream goes live.</span></a>
-      <a id="twitterLink" href="https://twitter.com/" target="_blank" rel="noopener"><b>Follow on Twitter</b><span>Quick updates, schedule changes and highlights.</span></a>
+      <a class="glass link" id="subLink" href="#achievements"><b>Subscribe</b><span>Back the stream and get your name on the next milestone.</span><em class="go" style="font-style:normal">Support &rarr;</em></a>
+      <a class="glass link" id="igLink" href="https://www.instagram.com/" target="_blank" rel="noopener"><b>Instagram</b><span>Behind-the-scenes posts, announcements and clips.</span><em class="go" style="font-style:normal">Follow &rarr;</em></a>
+      <a class="glass link" id="twitchLink" href="https://www.twitch.tv/" target="_blank" rel="noopener"><b>Twitch</b><span>Get notified every time the stream goes live.</span><em class="go" style="font-style:normal">Follow &rarr;</em></a>
+      <a class="glass link" id="twitterLink" href="https://twitter.com/" target="_blank" rel="noopener"><b>Twitter</b><span>Quick updates, schedule changes and highlights.</span><em class="go" style="font-style:normal">Follow &rarr;</em></a>
     </div>
   </section>
 
   <footer>
     <span class="mono">&copy; GIKS</span>
-    <span class="mono">Figures shown are sample numbers</span>
+    <span class="mono">Figures shown are placeholders</span>
   </footer>
 </div>
 
 <script>
-/* Edit this block: name, links, counts and milestone steps. */
+/* Edit this block: counts, milestone steps and links. */
 var CONFIG = {
-  subscribers: { count: 1284, milestones: [10, 50, 100, 250, 500, 1000, 2500, 5000] },
-  instagram:   { count: 12450, milestones: [100, 500, 1000, 5000, 10000, 25000, 50000] },
-  twitch:      { count: 3870, milestones: [50, 100, 500, 1000, 2500, 5000, 10000] },
-  twitter:     { count: 6215, milestones: [100, 500, 1000, 5000, 10000, 25000] },
+  subscribers: { count: 0, milestones: [10, 50, 100, 250, 500, 1000, 2500, 5000] },
+  instagram:   { count: 0, milestones: [100, 500, 1000, 5000, 10000, 25000, 50000] },
+  twitch:      { count: 0, milestones: [50, 100, 500, 1000, 2500, 5000, 10000] },
+  twitter:     { count: 0, milestones: [100, 500, 1000, 5000, 10000, 25000] },
   links: { subscribe: "#achievements", instagram: "https://www.instagram.com/", twitch: "https://www.twitch.tv/", twitter: "https://twitter.com/" }
 };
 
@@ -192,14 +224,10 @@ function fmt(n) { return Number(n).toLocaleString("en-US"); }
 function short(n) { return n >= 1000 ? (n / 1000) + "K" : String(n); }
 
 var ACH = [
-  { key: "subscribers", title: "Subscriber", noun: "Subscribers", icon: "star",
-    text: "People who chose to back the channel with a subscription.", data: CONFIG.subscribers },
-  { key: "instagram", title: "Instagram Follower", noun: "Followers", icon: "camera",
-    text: "People following along on Instagram between streams.", data: CONFIG.instagram },
-  { key: "twitch", title: "Twitch Follower", noun: "Followers", icon: "twitch",
-    text: "People following the channel on Twitch.", data: CONFIG.twitch },
-  { key: "twitter", title: "Twitter Follower", noun: "Followers", icon: "twitter",
-    text: "People following for updates on Twitter.", data: CONFIG.twitter }
+  { title: "Subscribers", noun: "Subscribers", icon: "star", data: CONFIG.subscribers },
+  { title: "Instagram", noun: "Followers", icon: "camera", data: CONFIG.instagram },
+  { title: "Twitch", noun: "Followers", icon: "twitch", data: CONFIG.twitch },
+  { title: "Twitter", noun: "Followers", icon: "twitter", data: CONFIG.twitter }
 ];
 
 function state(a) {
@@ -208,7 +236,7 @@ function state(a) {
   var next = ms.find(function (m) { return c < m; });
   var prev = done.length ? done[done.length - 1] : 0;
   var pct = next ? Math.round(((c - prev) / (next - prev)) * 100) : 100;
-  return { done: done, next: next, prev: prev, pct: pct };
+  return { done: done, next: next, pct: pct };
 }
 
 var grid = document.getElementById("grid");
@@ -216,17 +244,16 @@ ACH.forEach(function (a) {
   var s = state(a);
   var steps = a.data.milestones.map(function (m) {
     var cls = m <= a.data.count ? "step done" : (m === s.next ? "step next" : "step");
-    var mark = m <= a.data.count ? "&#10003;" : "";
-    return '<li class="' + cls + '">' + mark + " " + short(m) + "</li>";
+    return '<li class="' + cls + '">' + (m <= a.data.count ? "&#10003; " : "") + short(m) + "</li>";
   }).join("");
   var progress = s.next
     ? '<div class="progress-row"><span class="mono">Next ' + fmt(s.next) + '</span><span class="mono">' + fmt(s.next - a.data.count) + ' to go</span></div>'
-    : '<div class="progress-row"><span class="mono">Every milestone unlocked</span></div>';
+    : '<div class="progress-row"><span class="mono">All milestones unlocked</span></div>';
   var el = document.createElement("article");
-  el.className = "card";
+  el.className = "glass card";
   el.innerHTML =
-    '<div class="card-top"><div class="badge">' + ICONS[a.icon] + '</div>' +
-    '<h3>' + a.title + '</h3></div>' +
+    '<div class="badge">' + ICONS[a.icon] + '</div>' +
+    '<h3>' + a.title + '</h3>' +
     '<div class="count"><span data-count="' + a.data.count + '">' + fmt(a.data.count) + '</span><small>' + a.noun + '</small></div>' +
     '<div class="progress">' + progress +
     '<div class="track" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="' + s.pct + '" aria-label="Progress to next ' + a.title + ' milestone"><div class="fill" data-pct="' + s.pct + '"></div></div></div>' +
@@ -234,18 +261,19 @@ ACH.forEach(function (a) {
   grid.appendChild(el);
 });
 
-/* hero toast: the biggest subscriber milestone reached */
+/* hero chip: latest subscriber milestone, or the first goal */
 (function () {
   var s = state(ACH[0]);
-  var top = s.done.length ? s.done[s.done.length - 1] : null;
-  var t = document.getElementById("toast");
-  if (!top) { t.hidden = true; return; }
-  t.innerHTML = '<div class="badge">' + ICONS.star + '</div><div><span class="mono">Achievement unlocked</span><strong>' + fmt(top) + ' Subscribers</strong></div>';
+  var g = document.getElementById("goal");
+  if (s.done.length) {
+    g.innerHTML = '<span class="mono">Unlocked</span><b>' + fmt(s.done[s.done.length - 1]) + ' Subscribers</b>';
+  } else {
+    g.innerHTML = '<span class="mono">First goal</span><b>' + fmt(s.next) + ' Subscribers</b>';
+  }
 })();
 
 /* links */
-document.getElementById("subBtn").href = CONFIG.links.subscribe;
-document.getElementById("subLink").href = CONFIG.links.subscribe;
+["subBtn", "subLink", "navSub"].forEach(function (id) { document.getElementById(id).href = CONFIG.links.subscribe; });
 document.getElementById("igBtn").href = CONFIG.links.instagram;
 document.getElementById("igLink").href = CONFIG.links.instagram;
 document.getElementById("twitchLink").href = CONFIG.links.twitch;
@@ -258,7 +286,9 @@ requestAnimationFrame(function () {
 });
 if (!reduce) {
   document.querySelectorAll("[data-count]").forEach(function (el) {
-    var end = Number(el.getAttribute("data-count")), t0 = null, dur = 1100;
+    var end = Number(el.getAttribute("data-count"));
+    if (!end) return;
+    var t0 = null, dur = 1100;
     function tick(ts) {
       if (t0 === null) t0 = ts;
       var p = Math.min((ts - t0) / dur, 1), e = 1 - Math.pow(1 - p, 3);
@@ -268,6 +298,15 @@ if (!reduce) {
     requestAnimationFrame(tick);
   });
 }
+
+/* soft light that follows the pointer across glass cards */
+document.querySelectorAll(".glass").forEach(function (el) {
+  el.addEventListener("pointermove", function (e) {
+    var r = el.getBoundingClientRect();
+    el.style.setProperty("--mx", (e.clientX - r.left) + "px");
+    el.style.setProperty("--my", (e.clientY - r.top) + "px");
+  });
+});
 </script>
 
 </body></html>
